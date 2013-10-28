@@ -1,0 +1,25 @@
+#!/bin/bash
+host=$1
+
+
+function sleepy() {
+        # sleep for 1 - 6 seconds
+        sleep $[( $RANDOM % 5 ) +1]
+}
+
+while true; do
+    if ping -c1 -W1 $host >/dev/null; then
+        if nc -zv -w 1 $host 22 > /dev/null 2>&1; then
+            ssh $host
+            exit $?
+        else
+            echo "Host is up, but SSH is not yet responding."
+            sleepy
+        fi
+    else
+        date=`date`
+        echo "[ $date ] Host $host is down, sleeping"
+        sleepy
+    fi
+done
+
