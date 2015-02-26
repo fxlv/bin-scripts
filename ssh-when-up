@@ -1,25 +1,28 @@
 #!/bin/bash
 host=$1
 
+retry_counter=0
+
+max_sleep_time=60
 
 function sleepy() {
         # sleep for 1 - 6 seconds
-        sleep $[( $RANDOM % 5 ) +1]
+        sleep_time=$[( $RANDOM % 5 ) +1]
+        if [[ $sleep_time < $max_sleep_time ]]; then
+            sleep_time=$(( $sleep_time + $(( $retry_counter * 2 )) ))
+            echo "[ $date ] Host $host is down, sleeping for $sleep_time seconds"
+            sleep $sleep_time
+        fi
 }
 
 while true; do
-    if ping -c1 -W1 $host >/dev/null; then
-        if nc -zv -w 1 $host 22 > /dev/null 2>&1; then
+        if ssh -o ConnectTimeout=2 $host id >/dev/null 2&>1; then
             ssh $host
             exit $?
         else
-            echo "Host is up, but SSH is not yet responding."
+            date=`date`
             sleepy
+            retry_counter=$(($retry_counter +1 ))
         fi
-    else
-        date=`date`
-        echo "[ $date ] Host $host is down, sleeping"
-        sleepy
-    fi
 done
 
