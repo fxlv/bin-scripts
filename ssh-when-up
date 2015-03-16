@@ -16,7 +16,7 @@ function sleepy() {
 }
 
 while true; do
-        if ssh -o ConnectTimeout=2 $host id >/dev/null 2&>1; then
+        if ssh -o ConnectTimeout=2 $host id 2>1 | grep -q "uid="; then
             ssh $host
             exit $?
         else
