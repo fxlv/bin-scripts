@@ -26,21 +26,21 @@ function sleepy() {
 }
 
 # first check if this is a hostname and if it is check if it can be resolved
-if echo $host | grep -E "^[0-9\.]+$" > /dev/null; then
+if echo "$host" | grep -E "^[0-9\.]+$" > /dev/null; then
     echo "Connecting to IP address $host"
 else
-    if ! host $host > /dev/null; then
+    if ! host "$host" > /dev/null; then
         echo "Failed to do hostname resolution for $host"
         exit 1
     fi
 fi
 
 while true; do
-        if ssh -o ConnectTimeout=2 $host id 2>1 | grep -q "uid="; then
-            ssh $host
+        if ssh -o ConnectTimeout=2 "$host" id 2>1 | grep -q "uid="; then
+            ssh "$host"
             exit $?
         else
-            date=`date`
+            date=$(date)
             sleepy
             retry_counter=$(($retry_counter +1 ))
         fi
