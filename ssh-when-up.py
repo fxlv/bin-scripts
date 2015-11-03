@@ -4,17 +4,19 @@ from subprocess import call
 import sys
 import socket
 import time
+import datetime
 
 
 def sleepy_time(seconds=2):
-    print "Sleepy time"
     time.sleep(seconds)
+    print datetime.datetime.now(), "Sleeping..."
 
 
-DEBUG = True
+DEBUG = False
 
 def dprint(msg):
-    print "DEBUG: {}".format(msg)
+    if DEBUG:
+        print "DEBUG: {}".format(msg)
 
 def check_target(target):
     socket.setdefaulttimeout(2)
