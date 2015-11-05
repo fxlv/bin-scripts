@@ -51,7 +51,11 @@ def main():
         sleepy_time()
     else:
         print "Host is up, connecting."
+        start_time = datetime.datetime.now()
         call("ssh {}".format(target), shell=True)
+        end_time = datetime.datetime.now()
+        elapsed_time = end_time - start_time
+        print "Elapsed time {}".format(elapsed_time)
 
 
 if __name__ == "__main__":
