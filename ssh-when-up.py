@@ -40,7 +40,11 @@ def check_target(target):
         return False
 
 def main():
-    parser = argparse.ArgumentParser()
+    desc = """
+    SSH to a server if it is up, 
+    if not up, wait till it comes up and SSH
+    """
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("target", help="Target host")
     args = parser.parse_args()
 
