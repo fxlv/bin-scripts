@@ -17,7 +17,6 @@ from Queue import Queue
 
 
 class Sleepy:
-
     def __init__(self):
         self.sleep_time = 1
 
@@ -32,9 +31,11 @@ class Sleepy:
 
 DEBUG = False
 
+
 def dprint(msg):
     if DEBUG:
         print "DEBUG: {}".format(msg)
+
 
 def check_target(target, q):
     socket.setdefaulttimeout(2)
@@ -60,16 +61,19 @@ def check_target(target, q):
             sys.exit(1)
         return False
 
+
 def sleep_till_host_responds(target, q):
     while not check_target(target, q):
         time.sleep(0.1)
         dprint("Thread is sleeping")
+
 
 def main():
     desc = """
     SSH to a server if it is up, 
     if not up, wait till it comes up and SSH
     """
+
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("target", help="Target host")
     args = parser.parse_args()
@@ -82,7 +86,7 @@ def main():
     print "Connecting to {}".format(target)
     down_time_begin = datetime.datetime.now()
 
-    t = Thread(target=sleep_till_host_responds,args=(target,q))
+    t = Thread(target=sleep_till_host_responds, args=(target, q))
     t.start()
     # use dots to indicete that stuff is happening
     dot = "."
@@ -108,12 +112,13 @@ def main():
             increment_dot = False
             cursor = "<-"
         elif not increment_dot:
-            dot_length = dot_length -1
+            dot_length = dot_length - 1
             if dot_length == 1:
                 increment_dot = True
                 cursor = "->"
         right_padding = dot_max_length - dot_length
-        progress = "{}{}{}".format(dot*dot_length, cursor, "."*right_padding)
+        progress = "{}{}{}".format(dot * dot_length, cursor, "." *
+                                   right_padding)
         msg += progress_container.format(progress)
         msg += "\r"
         sys.stdout.write(msg)
@@ -134,11 +139,10 @@ def main():
 
 
 if __name__ == "__main__":
-    
+
     try:
         main()
     except KeyboardInterrupt:
         print
         print "Ctrl-c pressed"
         sys.exit(0)
-
