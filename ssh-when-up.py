@@ -62,10 +62,18 @@ def check_target(target, q):
         return False
 
 
-def sleep_till_host_responds(target, q):
+def sleep_till_host_responds(target, q, stop_q):
     while not check_target(target, q):
+        # user has requested abort
+        if stop_q.qsize() > 0:
+            break
         time.sleep(0.1)
         dprint("Thread is sleeping")
+
+# stop_q is 0 by default but if it is > 0 then the sleeper thread will exit
+# this can be used if user aborts the program 
+# to signal the thread to exit gracefully
+stop_q = Queue()
 
 
 def main():
@@ -86,12 +94,13 @@ def main():
     print "Connecting to {}".format(target)
     down_time_begin = datetime.datetime.now()
 
-    t = Thread(target=sleep_till_host_responds, args=(target, q))
+    t = Thread(target=sleep_till_host_responds, args=(target, q, stop_q))
     t.start()
     # use dots to indicete that stuff is happening
     dot = "."
     dot_length = 1
     increment_dot = True
+    iteration_counter = 0
     dot_max_length = 20
     progress_container = "[ {} ]"
     cursor = "->"
@@ -117,12 +126,18 @@ def main():
                 increment_dot = True
                 cursor = "->"
         right_padding = dot_max_length - dot_length
-        progress = "{}{}{}".format(dot * dot_length, cursor, "." *
-                                   right_padding)
+        progress = "{}{}{}".format(dot * dot_length, cursor,
+                                   "." * right_padding)
         msg += progress_container.format(progress)
         msg += "\r"
-        sys.stdout.write(msg)
-        sys.stdout.flush()
+        # in case this is the first iteration, wait 
+        # for one second ( 10 x 0.1 ) to give ssh the chance to connect
+        if iteration_counter > 10:
+            sys.stdout.write(msg)
+            sys.stdout.flush()
+        else:
+            iteration_counter += 1
+        # sleep till next iteration
         time.sleep(0.1)
 
     else:
@@ -130,7 +145,8 @@ def main():
         down_time = down_time_end - down_time_begin
         print
         print "Host is up, connecting."
-        print "Down time: {}".format(down_time)
+        if down_time.seconds > 1:
+            print "Down time was: {}".format(down_time)
         start_time = datetime.datetime.now()
         call("ssh {}".format(target), shell=True)
         end_time = datetime.datetime.now()
@@ -144,5 +160,7 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         print
-        print "Ctrl-c pressed"
+        print "Ctrl-c pressed, stopping the thread, please wait."
+        # add something to the queue to signal that it needs to exit
+        stop_q.put(1)
         sys.exit(0)
