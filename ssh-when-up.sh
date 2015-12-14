@@ -1,4 +1,8 @@
 #!/bin/bash
+# 
+# Initial BASH version of ssh-when-up
+# Deprecated in favor of ssh-when-up.py
+#
 
 function usage {
     echo
