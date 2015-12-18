@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 from subprocess import call
+import subprocess
 import sys
 import socket
 import time
@@ -35,6 +36,18 @@ DEBUG = False
 def dprint(msg):
     if DEBUG:
         print "DEBUG: {}".format(msg)
+
+
+def proxy_used(target):
+    # determine if an SSH proxy command is used to reach this target
+    # by running "ssh -G <target>"
+    # if a proxy is to be used this will be printed out by SSH
+    cmd = "ssh -G {}".format(target)
+    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+    for line in p.stdout:
+        if "proxycommand" in line:
+            return True
+    return False
 
 
 def check_target(target, q):
@@ -76,6 +89,10 @@ def sleep_till_host_responds(target, q, stop_q):
 stop_q = Queue()
 
 
+def ssh(target):
+    call("ssh {}".format(target), shell=True)
+
+
 def main():
     desc = """
     SSH to a server if it is up, 
@@ -91,6 +108,10 @@ def main():
     # if queue size > 0 this means the host is up but is not accepting SSH
     q = Queue()
     sleepy = Sleepy()
+    if proxy_used(target):
+        print "Proxy is used for this host!"
+        ssh(target)
+        return
     print "Connecting to {}".format(target)
     down_time_begin = datetime.datetime.now()
 
@@ -148,7 +169,7 @@ def main():
         if down_time.seconds > 1:
             print "Down time was: {}".format(down_time)
         start_time = datetime.datetime.now()
-        call("ssh {}".format(target), shell=True)
+        ssh(target)
         end_time = datetime.datetime.now()
         elapsed_time = end_time - start_time
         print "Elapsed time {}".format(elapsed_time)
