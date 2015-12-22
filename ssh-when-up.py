@@ -6,6 +6,7 @@ import sys
 import socket
 import time
 import datetime
+import os
 from threading import Thread
 from Queue import Queue
 
@@ -38,11 +39,64 @@ def dprint(msg):
         print "DEBUG: {}".format(msg)
 
 
+def get_ssh_path():
+    for ssh_path in ["/usr/bin/ssh", "/bin/ssh"]:
+        if os.path.exists(ssh_path):
+            return ssh_path
+    return False
+
+
+def die(msg="Error. Cannot continue."):
+    print msg
+    sys.exit(1)
+
+
+def ssh_supports_g():
+    # starting with OpenSSH version 6.8
+    # there's a nice -G option that can be used to do a sort of a dry run
+    # this is useful to determine if a proxy will be used for connecting
+    ssh_version = get_ssh_version()
+    ssh_version = ssh_version.split("_")
+    # SSH version string will look like "OpenSSH_6.9p1"
+    # extract the number out of it and check if it's larger than 6.8
+    if "OpenSSH" in ssh_version[0]:
+        version_number = ssh_version[1]
+        if "p" in version_number:
+            version_number = version_number.split("p")[0]
+            if "." in version_number:
+                version_number = float(version_number)
+                if version_number >= 6.8:
+                    dprint("OpenSSH version {} is supported".format(
+                        version_number))
+                    return True
+    return False
+
+
+def get_ssh_version():
+    cmd = "{} -V".format(get_ssh_path())
+    p = subprocess.Popen(cmd.split(),
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    # Output example: 
+    # OpenSSH_6.9p1, LibreSSL 2.1.8
+    # openssh will output version info to STDERR
+    for line in p.stderr:
+        if "OpenSSH" in line:
+            # split by whitespace and expect first part to contain
+            # something like: "OpenSSH_6.9p1"
+            openssh_version = line.split()[0]
+            return openssh_version
+    # if failed to determine SSH version
+    return "Unknown"
+
+
 def proxy_used(target):
     # determine if an SSH proxy command is used to reach this target
     # by running "ssh -G <target>"
     # if a proxy is to be used this will be printed out by SSH
-    cmd = "ssh -G {}".format(target)
+    # this only works starting with 
+    # OpenSSH > = 6.8 (http://www.openssh.com/txt/release-6.8)
+    cmd = "{} -G {}".format(get_ssh_path(), target)
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
     for line in p.stdout:
         if "proxycommand" in line:
@@ -90,7 +144,8 @@ stop_q = Queue()
 
 
 def ssh(target):
-    call("ssh {}".format(target), shell=True)
+    cmd = "{} {}".format(get_ssh_path(), target)
+    call(cmd, shell=True)
 
 
 def main():
@@ -108,10 +163,19 @@ def main():
     # if queue size > 0 this means the host is up but is not accepting SSH
     q = Queue()
     sleepy = Sleepy()
-    if proxy_used(target):
-        print "Proxy is used for this host!"
-        ssh(target)
-        return
+
+    # determine the full path to ssh binary
+    # as it might be aliased and we can't just assume that 
+    # calling 'ssh' will be the right thing
+    ssh_binary = get_ssh_path()
+    if not ssh_binary:
+        die("ssh command was not found")
+    if ssh_supports_g():
+        if proxy_used(target):
+            print "Proxy is used for this host!"
+            ssh(target)
+            return
+    dprint("OpenSSH version: {}".format(get_ssh_version()))
     print "Connecting to {}".format(target)
     down_time_begin = datetime.datetime.now()
 
