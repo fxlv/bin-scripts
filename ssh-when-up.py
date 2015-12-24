@@ -77,7 +77,7 @@ def get_ssh_version():
     p = subprocess.Popen(cmd.split(),
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE)
-    # Output example: 
+    # Output example:
     # OpenSSH_6.9p1, LibreSSL 2.1.8
     # openssh will output version info to STDERR
     for line in p.stderr:
@@ -94,7 +94,7 @@ def proxy_used(target):
     # determine if an SSH proxy command is used to reach this target
     # by running "ssh -G <target>"
     # if a proxy is to be used this will be printed out by SSH
-    # this only works starting with 
+    # this only works starting with
     # OpenSSH > = 6.8 (http://www.openssh.com/txt/release-6.8)
     cmd = "{} -G {}".format(get_ssh_path(), target)
     p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
@@ -105,6 +105,23 @@ def proxy_used(target):
 
 
 def check_target(target, q):
+    """
+    Check if the target is up.
+    If it is return true
+    """
+    # target can be hostname or ip
+    # optionally it can be prepended by a username followed by an '@'
+    # like user@host
+    #
+    # for such cases we need to test and see
+    # if username was provided and remove it from the target
+    # as it is not relevant for testing connectivity
+    if "@" in target:
+        try:
+            username, target = target.split("@")
+        except:
+            die("Cannot parse the target")
+    # prepare the socket
     socket.setdefaulttimeout(2)
     s = socket.socket()
     try:
@@ -138,7 +155,7 @@ def sleep_till_host_responds(target, q, stop_q):
         dprint("Thread is sleeping")
 
 # stop_q is 0 by default but if it is > 0 then the sleeper thread will exit
-# this can be used if user aborts the program 
+# this can be used if user aborts the program
 # to signal the thread to exit gracefully
 stop_q = Queue()
 
@@ -150,7 +167,7 @@ def ssh(target):
 
 def main():
     desc = """
-    SSH to a server if it is up, 
+    SSH to a server if it is up,
     if not up, wait till it comes up and SSH
     """
 
@@ -165,7 +182,7 @@ def main():
     sleepy = Sleepy()
 
     # determine the full path to ssh binary
-    # as it might be aliased and we can't just assume that 
+    # as it might be aliased and we can't just assume that
     # calling 'ssh' will be the right thing
     ssh_binary = get_ssh_path()
     if not ssh_binary:
@@ -215,7 +232,7 @@ def main():
                                    "." * right_padding)
         msg += progress_container.format(progress)
         msg += "\r"
-        # in case this is the first iteration, wait 
+        # in case this is the first iteration, wait
         # for one second ( 10 x 0.1 ) to give ssh the chance to connect
         if iteration_counter > 10:
             sys.stdout.write(msg)
