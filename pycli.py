@@ -15,9 +15,8 @@ command = sys.argv[1]
 module = command.split(".")[0]
 method = command.split(".")[1]
 try:
-    print "Executing: "+command
+    print "Executing: " + command
     print eval("__import__('{}').{}".format(module, method))
-except Exception,e:
+except Exception, e:
     print "FAIL:"
     print e
-
