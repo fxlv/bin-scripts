@@ -179,7 +179,6 @@ def main():
     # use a queue to communicate with the thread
     # if queue size > 0 this means the host is up but is not accepting SSH
     q = Queue()
-    sleepy = Sleepy()
 
     # determine the full path to ssh binary
     # as it might be aliased and we can't just assume that
