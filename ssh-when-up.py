@@ -40,7 +40,7 @@ def dprint(msg):
 
 
 def get_ssh_path():
-    for ssh_path in ["/usr/bin/ssh", "/bin/ssh"]:
+    for ssh_path in ["/opt/openssh/bin/ssh", "/usr/bin/ssh", "/bin/ssh"]:
         if os.path.exists(ssh_path):
             return ssh_path
     return False
