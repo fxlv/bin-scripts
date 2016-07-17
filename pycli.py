@@ -6,7 +6,7 @@
 # but with pycli you can do:
 # ./pycli.py "os.uname()"
 #
-# Just a proof of concept for now. 
+# Just a proof of concept for now.
 #
 
 import sys

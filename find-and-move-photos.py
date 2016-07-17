@@ -10,7 +10,8 @@ DESTINATION_FOLDER = "{}/OneDrive/photos".format(os.environ['HOME'])
 DEBUG = True
 
 # TODO: usage message
-# TODO: better way of finding photos, no need to do deltas, can just use date.month and date.day to compare
+# TODO: better way of finding photos,
+# no need to do deltas, can just use date.month and date.day to compare
 
 
 def usage():
@@ -75,7 +76,7 @@ def main():
         date_format = "%Y-%m-%d"
     elif is_valid_date_month(date):
         date_format = "%Y-%m"
-        find_month = True # will search for photos from whole month
+        find_month = True  # will search for photos from whole month
 
     date = datetime.datetime.strptime(date, date_format)
 
@@ -87,7 +88,7 @@ def main():
 
     to_be_renamed = []
     for photo in photos:
-        # since there can be photos from different days, 
+        # since there can be photos from different days,
         # destination needs to be set for each photo individually
         mdate = get_mdate(photo)
         dest = "{destination_folder}/{year}/{month:02}/{date}".format(
@@ -114,10 +115,12 @@ def main():
     else:
         print "Aborting"
 
+
 def get_mdate(file_name):
     mdate = os.path.getmtime(file_name)
     mdate = datetime.datetime.fromtimestamp(mdate)
     return mdate
+
 
 def find_photos(date, find_month):
     """
