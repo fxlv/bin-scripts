@@ -1,0 +1,14 @@
+language: bash
+
+os:
+  - linux
+
+before_script:
+  - echo "deb http://archive.ubuntu.com/ubuntu/ trusty-backports main restricted universe" | sudo tee /etc/apt/sources.list
+  - sudo apt-get update
+  - sudo apt-get install shellcheck
+  - sudo pip install flake8
+
+script:
+ - shellcheck -e SC2034,SC2139 bash/*
+ - flake8 *.py
