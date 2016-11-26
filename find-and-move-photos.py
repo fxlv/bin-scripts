@@ -64,6 +64,10 @@ def main():
     """
 
     parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument("--dry-run",
+                        dest="dryrun",
+                        action="store_true",
+                        help="Dry run, show what changes would be made.")
     parser.add_argument("date", help="Date (yyyy-mm-dd or yyyy-mm)")
     args = parser.parse_args()
 
@@ -106,6 +110,8 @@ def main():
         dst_file = "{dest}/{photo}".format(dest=dest, photo=photo)
         print "{} => {}".format(src_file, dst_file)
         to_be_renamed.append((src_file, dst_file))
+    if args.dryrun:
+        return True
     if yesno("Shall we continue?"):
         print "Continuing"
         for photo in to_be_renamed:
