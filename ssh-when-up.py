@@ -154,6 +154,7 @@ def sleep_till_host_responds(target, q, stop_q):
         time.sleep(0.1)
         dprint("Thread is sleeping")
 
+
 # stop_q is 0 by default but if it is > 0 then the sleeper thread will exit
 # this can be used if user aborts the program
 # to signal the thread to exit gracefully
